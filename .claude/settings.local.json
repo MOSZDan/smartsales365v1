@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:hellosambhavi.com)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(python -m venv:*)",
+      "Bash(npm install:*)",
+      "Bash(.venv/Scripts/pip install:*)",
+      "Bash(.venv/Scripts/python.exe:*)",
+      "WebSearch",
+      "WebFetch(domain:wso2.com)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
