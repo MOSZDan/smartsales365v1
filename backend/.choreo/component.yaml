@@ -1,0 +1,64 @@
+# Choreo component configuration for SmartSales365 Backend
+# +required The configuration file schema version
+schemaVersion: 1.0
+
+# +optional Incoming connection details for the component
+endpoints:
+  # +required Unique name for the endpoint
+  - name: smartsales-api
+    # +optional Display name for the endpoint
+    displayName: SmartSales365 API
+    # +required Service section has the user service endpoint details
+    service:
+      # +optional Context (base path) of the API that gets exposed via the endpoint
+      basePath: /api
+      # +required Numeric port value that gets exposed via the endpoint
+      port: 8000
+      # +required Type of traffic that the endpoint is accepting
+      type: REST
+      # +optional Network level visibility of this endpoint
+      # Accepted values: Project|Organization|Public
+      networkVisibility: Public
+
+# +optional Defines runtime configurations
+configurations:
+  # +optional List of environment variables to be injected into the component
+  env:
+    # Django Settings
+    - name: DJANGO_SETTINGS_MODULE
+      value: config.settings
+
+    # Security - Secret Key (should be provided during deployment)
+    - name: SECRET_KEY
+      value: ""
+
+    # Database Configuration (should be provided during deployment)
+    - name: DATABASE_URL
+      value: ""
+
+    # Django Debug Mode (set to False for production)
+    - name: DEBUG
+      value: "False"
+
+    # Allowed Hosts (update with your Choreo domain)
+    - name: ALLOWED_HOSTS
+      value: "*"
+
+    # CORS Configuration
+    - name: CORS_ALLOWED_ORIGINS
+      value: ""
+
+    # Email Configuration (MailerSend)
+    - name: ANYMAIL_MAILERSEND_API_TOKEN
+      value: ""
+
+    - name: DEFAULT_FROM_EMAIL
+      value: ""
+
+    # JWT Configuration
+    - name: JWT_SECRET_KEY
+      value: ""
+
+    # Database SSL (recommended for production)
+    - name: DATABASE_SSL_MODE
+      value: "require"
