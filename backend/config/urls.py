@@ -5,9 +5,33 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+
+def api_root(request):
+    """Root endpoint with API information"""
+    return JsonResponse({
+        'message': 'SmartSales365 API',
+        'version': '1.0.0',
+        'status': 'running',
+        'endpoints': {
+            'documentation': '/api/docs/',
+            'schema': '/api/schema/',
+            'admin': '/admin/',
+            'auth': '/api/auth/',
+            'products': '/api/products/',
+            'stores': '/api/stores/',
+            'orders': '/api/orders/',
+            'ratings': '/api/ratings/',
+            'coupons': '/api/coupons/',
+        }
+    })
+
 urlpatterns = [
+    # Root
+    path('', api_root, name='api-root'),
+
     # Admin
     path('admin/', admin.site.urls),
 
