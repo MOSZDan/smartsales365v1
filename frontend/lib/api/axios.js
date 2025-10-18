@@ -14,7 +14,8 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
     (config) => {
         if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('access_token');
+            // Check both localStorage and sessionStorage
+            const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -37,7 +38,9 @@ axiosInstance.interceptors.response.use(
             originalRequest._retry = true;
 
             if (typeof window !== 'undefined') {
-                const refreshToken = localStorage.getItem('refresh_token');
+                // Check both storages for refresh token
+                const refreshToken = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
+                const rememberMe = localStorage.getItem('rememberMe') === 'true';
 
                 if (refreshToken) {
                     try {
@@ -46,7 +49,10 @@ axiosInstance.interceptors.response.use(
                         });
 
                         const { access } = response.data;
-                        localStorage.setItem('access_token', access);
+
+                        // Store in the same storage as before
+                        const storage = rememberMe ? localStorage : sessionStorage;
+                        storage.setItem('access_token', access);
 
                         // Retry original request with new token
                         originalRequest.headers.Authorization = `Bearer ${access}`;
@@ -56,6 +62,11 @@ axiosInstance.interceptors.response.use(
                         localStorage.removeItem('access_token');
                         localStorage.removeItem('refresh_token');
                         localStorage.removeItem('user');
+                        localStorage.removeItem('rememberMe');
+                        sessionStorage.removeItem('access_token');
+                        sessionStorage.removeItem('refresh_token');
+                        sessionStorage.removeItem('user');
+                        sessionStorage.removeItem('rememberMe');
                         window.location.href = '/login';
                         return Promise.reject(refreshError);
                     }

@@ -288,3 +288,12 @@ AXES_COOLOFF_TIME = 1  # Hours
 
 # Content Security Policy (Add django-csp package for full CSP support)
 # Recommended for production
+
+# ============================================================================
+# PAYMENT SETTINGS
+# ============================================================================
+
+# Stripe Configuration
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
+STRIPE_CURRENCY = config('STRIPE_CURRENCY', default='usd')

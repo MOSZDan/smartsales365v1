@@ -12,7 +12,8 @@ export default function LoginPage() {
 
     const [formData, setFormData] = useState({
         email: '',
-        password: ''
+        password: '',
+        rememberMe: false
     })
 
     const { user, isLoading, isError, isSuccess, message } = useSelector(
@@ -44,7 +45,8 @@ export default function LoginPage() {
 
         const credentials = {
             email: formData.email,
-            password: formData.password
+            password: formData.password,
+            rememberMe: formData.rememberMe
         }
 
         dispatch(login(credentials))
@@ -102,8 +104,10 @@ export default function LoginPage() {
                         <div className="flex items-center">
                             <input
                                 id="remember-me"
-                                name="remember-me"
+                                name="rememberMe"
                                 type="checkbox"
+                                checked={formData.rememberMe}
+                                onChange={(e) => setFormData({...formData, rememberMe: e.target.checked})}
                                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                             />
                             <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">

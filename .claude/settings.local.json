@@ -9,7 +9,9 @@
       "Bash(.venv/Scripts/pip install:*)",
       "Bash(.venv/Scripts/python.exe:*)",
       "WebSearch",
-      "WebFetch(domain:wso2.com)"
+      "WebFetch(domain:wso2.com)",
+      "Bash(python manage.py makemigrations:*)",
+      "Bash(python manage.py migrate:*)"
     ],
     "deny": [],
     "ask": []

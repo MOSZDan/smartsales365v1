@@ -16,16 +16,22 @@ const authService = {
     login: async (credentials) => {
         const response = await axiosInstance.post('/auth/login/', credentials);
         if (response.data.tokens) {
-            localStorage.setItem('access_token', response.data.tokens.access);
-            localStorage.setItem('refresh_token', response.data.tokens.refresh);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
+            // Use localStorage if rememberMe is true, otherwise use sessionStorage
+            const storage = credentials.rememberMe ? localStorage : sessionStorage;
+
+            storage.setItem('access_token', response.data.tokens.access);
+            storage.setItem('refresh_token', response.data.tokens.refresh);
+            storage.setItem('user', JSON.stringify(response.data.user));
+
+            // Also store the rememberMe preference
+            storage.setItem('rememberMe', credentials.rememberMe);
         }
         return response.data;
     },
 
     // Logout user
     logout: async () => {
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
         try {
             await axiosInstance.post('/auth/logout/', {
                 refresh_token: refreshToken
@@ -33,9 +39,16 @@ const authService = {
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
+            // Clear from both storages
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');
+            localStorage.removeItem('rememberMe');
+
+            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('refresh_token');
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('rememberMe');
         }
     },
 
@@ -70,10 +83,10 @@ const authService = {
         return response.data;
     },
 
-    // Get user from localStorage
+    // Get user from localStorage or sessionStorage
     getCurrentUser: () => {
         if (typeof window !== 'undefined') {
-            const user = localStorage.getItem('user');
+            const user = localStorage.getItem('user') || sessionStorage.getItem('user');
             return user ? JSON.parse(user) : null;
         }
         return null;
@@ -82,9 +95,25 @@ const authService = {
     // Check if user is authenticated
     isAuthenticated: () => {
         if (typeof window !== 'undefined') {
-            return !!localStorage.getItem('access_token');
+            return !!(localStorage.getItem('access_token') || sessionStorage.getItem('access_token'));
         }
         return false;
+    },
+
+    // Get access token from either storage
+    getAccessToken: () => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+        }
+        return null;
+    },
+
+    // Get refresh token from either storage
+    getRefreshToken: () => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
+        }
+        return null;
     }
 };
 

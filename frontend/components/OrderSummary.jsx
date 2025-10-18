@@ -3,8 +3,13 @@ import React, { useState } from 'react'
 import AddressModal from './AddressModal';
 import { useSelector, useDispatch } from 'react-redux';
 import { clearCart } from '@/lib/features/cart/cartSlice';
+import { createOrder, reset } from '@/lib/features/orders/orderSlice';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { loadStripe } from '@stripe/stripe-js';
+
+// Initialize Stripe
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 const OrderSummary = ({ totalPrice, items }) => {
 
@@ -29,11 +34,82 @@ const OrderSummary = ({ totalPrice, items }) => {
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
 
-        // Clear the cart after placing order
-        dispatch(clearCart());
+        // Validation
+        if (!selectedAddress) {
+            toast.error('Please select a delivery address');
+            return;
+        }
 
-        // Redirect to orders page
-        router.push('/orders');
+        if (items.length === 0) {
+            toast.error('Your cart is empty');
+            return;
+        }
+
+        // Get store_id from first item (all items should be from same store)
+        const storeId = items[0]?.store;
+
+        if (!storeId) {
+            toast.error('Product store information is missing');
+            return;
+        }
+
+        // Prepare order data
+        const orderData = {
+            total: coupon ? (totalPrice - (coupon.discount / 100 * totalPrice)).toFixed(2) : totalPrice,
+            payment_method: paymentMethod,
+            address_id: selectedAddress.id,
+            store_id: storeId, // Get from product.store
+            is_coupon_used: !!coupon,
+            coupon: coupon ? {
+                code: coupon.code,
+                discount: coupon.discount
+            } : {},
+            items: items.map(item => ({
+                product_id: item.id,
+                quantity: item.quantity,
+                price: item.price
+            }))
+        };
+
+        try {
+            // Create order
+            const result = await dispatch(createOrder(orderData)).unwrap();
+
+            if (result.success) {
+                // Handle COD payment
+                if (paymentMethod === 'COD') {
+                    toast.success('Order placed successfully!');
+                    dispatch(clearCart());
+                    router.push('/orders');
+                }
+                // Handle Stripe payment
+                else if (paymentMethod === 'STRIPE') {
+                    const stripe = await stripePromise;
+                    const { clientSecret } = result;
+
+                    if (!stripe || !clientSecret) {
+                        toast.error('Payment system error');
+                        return;
+                    }
+
+                    // Redirect to Stripe Checkout
+                    const { error } = await stripe.confirmPayment({
+                        clientSecret,
+                        confirmParams: {
+                            return_url: `${window.location.origin}/orders?payment_success=true&order_id=${result.order.id}`,
+                        },
+                    });
+
+                    if (error) {
+                        toast.error(error.message || 'Payment failed');
+                    } else {
+                        dispatch(clearCart());
+                    }
+                }
+            }
+        } catch (error) {
+            toast.error(error || 'Failed to place order');
+        }
     }
 
     return (
